@@ -1,6 +1,6 @@
-package com.opcuatest.demo.controller;
+package com.opcuatest.demo.controllers;
 
-import com.opcuatest.demo.service.OpcUaDataService;
+import com.opcuatest.demo.services.OpcUaDataService;
 import org.eclipse.milo.opcua.stack.core.types.builtin.NodeId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;

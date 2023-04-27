@@ -1,20 +1,16 @@
 package com.opcuatest.demo.config;
 
 import java.io.InputStream;
-import java.net.URI;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 
-import com.opcuatest.demo.KeyLoader;
 import com.opcuatest.demo.MyTransport;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
-import org.eclipse.milo.opcua.sdk.client.api.identity.IdentityProvider;
-import org.eclipse.milo.opcua.sdk.client.api.identity.UsernameProvider;
+import org.eclipse.milo.opcua.sdk.client.api.identity.X509IdentityProvider;
 import org.eclipse.milo.opcua.stack.client.UaStackClient;
 import org.eclipse.milo.opcua.stack.client.UaStackClientConfig;
 import org.eclipse.milo.opcua.stack.client.transport.UaTransport;
-import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
 import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
 import org.eclipse.milo.opcua.stack.core.types.enumerated.ApplicationType;
 import org.eclipse.milo.opcua.stack.core.types.structured.ApplicationDescription;
@@ -23,11 +19,12 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.*;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.function.Function;
+import java.io.FileInputStream;
 
+import static com.opcuatest.demo.KeyLoader.loadPrivateKeyFromResources;
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 @Configuration
@@ -61,7 +58,7 @@ public class OpcUaConfiguration {
         certChain[0] = certificate;
 
         // wczytywanie klucza prywatnego z pliku server_key.pem
-        PrivateKey privateKey = KeyLoader.loadPrivateKeyFromResources("security/server_key.pem");
+        PrivateKey privateKey = loadPrivateKeyFromResources("security/server_key.pem");
         KeyPair keyPair = new KeyPair(certificate.getPublicKey(), privateKey);
 
         String productUri = "urn:my-product";
@@ -89,7 +86,7 @@ public class OpcUaConfiguration {
                 .setCertificate(certificate)
                 .setKeyPair(keyPair)
                 .setCertificateChain(certChain)
-                .setIdentityProvider(new UsernameProvider(username, password))
+                .setIdentityProvider(new X509IdentityProvider(certificate, privateKey))
                 .build();
 
         UaStackClientConfig uaConfig = UaStackClientConfig.builder()
@@ -102,9 +99,9 @@ public class OpcUaConfiguration {
 
         OpcUaClient opcUaClient = new OpcUaClient(config, stackClient);
         System.out.println(opcUaClient.getSession());
-        //TODO: make this line work at application startup
         //opcUaClient.connect().get();
 
         return opcUaClient;
     }
+
 }

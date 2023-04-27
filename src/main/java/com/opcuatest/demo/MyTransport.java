@@ -18,9 +18,6 @@ import java.util.concurrent.CompletableFuture;
 
 public class MyTransport implements UaTransport {
 
-    @Value("opcua.server.bind-port")
-    private String serverPort;
-
     @Value("opcua.server.bind-addresses")
     private String serverHost;
 
@@ -53,7 +50,8 @@ public class MyTransport implements UaTransport {
         CompletableFuture<byte[]> future = new CompletableFuture<>();
         try {
             // create a new socket and connect to the server
-            Socket socket = new Socket(serverHost, Integer.parseInt(serverPort));
+            int port = 4840;
+            Socket socket = new Socket(serverHost, port);
 
             // write the request to the socket
             OutputStream outputStream = socket.getOutputStream();

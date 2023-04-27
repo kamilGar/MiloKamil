@@ -1,4 +1,4 @@
-package com.opcuatest.demo.service;
+package com.opcuatest.demo.services;
 
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.stack.core.types.builtin.DataValue;
