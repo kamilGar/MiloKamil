@@ -1,29 +1,22 @@
 package com.opcuatest.demo;
 
-import com.google.common.collect.Lists;
-import org.eclipse.milo.opcua.sdk.client.api.identity.X509IdentityProvider;
 import org.eclipse.milo.opcua.sdk.server.OpcUaServer;
 import org.eclipse.milo.opcua.sdk.server.api.config.OpcUaServerConfig;
-import org.eclipse.milo.opcua.sdk.server.identity.UsernameIdentityValidator;
 import org.eclipse.milo.opcua.sdk.server.identity.X509IdentityValidator;
 import org.eclipse.milo.opcua.stack.core.security.DefaultCertificateManager;
-import org.eclipse.milo.opcua.stack.core.security.SecurityPolicy;
-import org.eclipse.milo.opcua.stack.core.transport.TransportProfile;
-import org.eclipse.milo.opcua.stack.core.types.structured.AnonymousIdentityToken;
-import org.eclipse.milo.opcua.stack.core.types.structured.BuildInfo;
+import org.eclipse.milo.opcua.stack.server.EndpointConfiguration;
+import org.eclipse.milo.opcua.stack.core.types.structured.*;
 import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
-import org.eclipse.milo.opcua.stack.core.types.structured.EndpointConfiguration;
-import org.eclipse.milo.opcua.stack.core.types.structured.UserTokenPolicy;
 
 import java.io.*;
-import java.net.InetSocketAddress;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
-import java.util.concurrent.CompletableFuture;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Predicate;
 
 import static com.opcuatest.demo.KeyLoader.loadPrivateKeyFromResources;
 
@@ -42,8 +35,15 @@ public class MyOpcUaServer {
         PrivateKey privateKey = loadPrivateKeyFromResources("security/server_key.pem");
         KeyPair keyPair = new KeyPair(certificate.getPublicKey(), privateKey);
 
-        // Create an instance of the X509IdentityProvider
-        X509IdentityProvider identityProvider = new X509IdentityProvider(certificate, privateKey);
+        // Create an instance of the X509IdentityValidator
+        Predicate<X509Certificate> certificatePredicate = cert -> true;
+        X509IdentityValidator identityValidator = new X509IdentityValidator(certificatePredicate);
+
+        EndpointConfiguration endpoint = EndpointConfiguration.newBuilder()
+                .setBindAddress("0.0.0.0")
+                .setBindPort(4840)
+                .setPath("/opcua/example")
+                .build();
 
         // Create the server configuration
         OpcUaServerConfig serverConfig = OpcUaServerConfig.builder()
@@ -51,26 +51,16 @@ public class MyOpcUaServer {
                 .setApplicationUri("urn:localhost:MyServer")
                 .setBuildInfo(new BuildInfo("MyServer", "v1.0.0", "My OPC UA Server", null, null, null))
                 .setCertificateManager(new DefaultCertificateManager(keyPair, certificate))
+                .setIdentityValidator(identityValidator)
                 .setProductUri("urn:mycompany:myproduct")
+                .setEndpoints(Set.of(endpoint))
                 .build();
-//                .setEndpoints(Lists.newArrayList(
-//                        // Create a TCP endpoint with no security
-//                        new TcpServerEndpoint(
-//                                new InetSocketAddress("0.0.0.0", 12686),
-//                                Lists.newArrayList(EndpointConfiguration.builder()
-//                                        .setTransportProfile(TransportProfile.TCP_UASC_UABINARY)
-//                                        .setSecurityPolicy(SecurityPolicy.None)
-//                                        .setPath("/my-opcua-server")
-//                                        .build())
-//                        )
-//                ))
-//                .build();
-//
+
         // Create the OPC UA server instance
         OpcUaServer server = new OpcUaServer(serverConfig);
-//
-//        // Add a Username/Password authentication source
-//        server.getAuthenticationManager().setIdentityValidator(new UsernameIdentityValidator(
+
+        //TODO: Add a Username/Password authentication source
+//      server.getAuthenticationManager().setIdentityValidator(new UsernameIdentityValidator(
 //                true, authenticationChallenge -> {
 //            String user = authenticationChallenge.getUsername();
 //            String password = authenticationChallenge.getPassword();
@@ -86,8 +76,7 @@ public class MyOpcUaServer {
 
         // Start the server
         server.startup().get();
+        System.out.println("OPC UA server is now running.");
 
-        // Run the server
-        //server.awaitShutdown();
     }
 }

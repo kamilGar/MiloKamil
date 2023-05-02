@@ -45,6 +45,7 @@ public class OpcUaConfiguration {
     @Value("${opcua.server.password}")
     private String password;
 
+
     @Bean
     public OpcUaClient opcUaClient() throws Exception {
 
