@@ -4,7 +4,7 @@ import java.io.InputStream;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 
-import com.opcuatest.demo.MyTransport;
+import com.opcuatest.demo.utils.MyTransport;
 import org.eclipse.milo.opcua.sdk.client.OpcUaClient;
 import org.eclipse.milo.opcua.sdk.client.api.config.OpcUaClientConfig;
 import org.eclipse.milo.opcua.sdk.client.api.identity.X509IdentityProvider;
@@ -24,7 +24,7 @@ import java.security.cert.X509Certificate;
 import java.util.function.Function;
 import java.io.FileInputStream;
 
-import static com.opcuatest.demo.KeyLoader.loadPrivateKeyFromResources;
+import static com.opcuatest.demo.utils.KeyLoader.loadPrivateKeyFromResources;
 import static org.eclipse.milo.opcua.stack.core.types.builtin.unsigned.Unsigned.uint;
 
 @Configuration
@@ -44,7 +44,6 @@ public class OpcUaConfiguration {
 
     @Value("${opcua.server.password}")
     private String password;
-
 
     @Bean
     public OpcUaClient opcUaClient() throws Exception {
@@ -71,8 +70,7 @@ public class OpcUaConfiguration {
                 null, null, null
         );
 
-        EndpointDescription endpoint = EndpointDescription
-                .builder()
+        EndpointDescription endpoint = EndpointDescription.builder()
                 .endpointUrl(endpointUrl)
                 .server(appDescription)
                 .build();
@@ -99,8 +97,7 @@ public class OpcUaConfiguration {
         UaStackClient stackClient = new UaStackClient(uaConfig, transportFactory);
 
         OpcUaClient opcUaClient = new OpcUaClient(config, stackClient);
-        System.out.println(opcUaClient.getSession());
-        //opcUaClient.connect().get();
+        opcUaClient.connect();
 
         return opcUaClient;
     }

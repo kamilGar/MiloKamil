@@ -1,4 +1,4 @@
-package com.opcuatest.demo;
+package com.opcuatest.demo.utils;
 
 import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.openssl.PEMParser;

@@ -18,7 +18,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 
-import static com.opcuatest.demo.KeyLoader.loadPrivateKeyFromResources;
+import static com.opcuatest.demo.utils.KeyLoader.loadPrivateKeyFromResources;
 
 public class MyOpcUaServer {
 
@@ -75,8 +75,8 @@ public class MyOpcUaServer {
 //        }));
 
         // Start the server
-        server.startup().get();
+        server.startup();
         System.out.println("OPC UA server is now running.");
-
+        Thread.sleep(1000000);
     }
 }

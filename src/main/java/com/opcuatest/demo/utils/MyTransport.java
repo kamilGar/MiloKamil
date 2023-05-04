@@ -1,4 +1,4 @@
-package com.opcuatest.demo;
+package com.opcuatest.demo.utils;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
