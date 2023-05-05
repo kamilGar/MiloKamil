@@ -1,6 +1,10 @@
 package com.opcuatest.demo;
 
+import com.opcuatest.demo.utils.MyNamespace;
+import org.apache.plc4x.java.opcuaserver.backend.Plc4xNamespace;
+import org.apache.plc4x.java.opcuaserver.configuration.Configuration;
 import org.eclipse.milo.opcua.sdk.server.OpcUaServer;
+import org.eclipse.milo.opcua.sdk.server.api.ManagedNamespaceWithLifecycle;
 import org.eclipse.milo.opcua.sdk.server.api.config.OpcUaServerConfig;
 import org.eclipse.milo.opcua.sdk.server.identity.X509IdentityValidator;
 import org.eclipse.milo.opcua.stack.core.security.DefaultCertificateManager;
@@ -9,20 +13,23 @@ import org.eclipse.milo.opcua.stack.core.types.structured.*;
 import org.eclipse.milo.opcua.stack.core.types.builtin.LocalizedText;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.cert.CertificateException;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ExecutionException;
 import java.util.function.Predicate;
 
 import static com.opcuatest.demo.utils.KeyLoader.loadPrivateKeyFromResources;
 
 public class MyOpcUaServer {
 
-    public static void main(String[] args) throws ExecutionException, InterruptedException, CertificateException, IOException {
+    public static void main(String[] args) throws InterruptedException, CertificateException, IOException {
 
         // Load the server certificate and private key from files
 
@@ -60,22 +67,23 @@ public class MyOpcUaServer {
         OpcUaServer server = new OpcUaServer(serverConfig);
 
         //TODO: Add a Username/Password authentication source
-//      server.getAuthenticationManager().setIdentityValidator(new UsernameIdentityValidator(
-//                true, authenticationChallenge -> {
-//            String user = authenticationChallenge.getUsername();
-//            String password = authenticationChallenge.getPassword();
-//
-//            if ("myuser".equals(user) && "mypassword".equals(password)) {
-//                return CompletableFuture.completedFuture(
-//                        new UserIdentity(new AnonymousIdentityToken("1")));
-//            }
-//
-//            return CompletableFuture.failedFuture(new BadUserAccessDeniedException(
-//                    "Invalid username or password"));
-//        }));
+
+        MyNamespace myNamespace = new MyNamespace(server, "My Namespace");
+        server.getServerNamespace().register(myNamespace);
+
+        String configFile = "src/main/resources/config/server.conf";
+        byte[] configFileBytes = Files.readAllBytes(Paths.get(configFile));
+        String configFileContent = new String(configFileBytes, StandardCharsets.UTF_8);
+        Configuration config = new Configuration();
+        config.setConfigFile(configFileContent);
+
+        Plc4xNamespace plc4xNamespace = new Plc4xNamespace(server, config);
+        server.getServerNamespace().register(plc4xNamespace);
 
         // Start the server
         server.startup();
+        plc4xNamespace.startup();
+        myNamespace.startup();
         System.out.println("OPC UA server is now running.");
         Thread.sleep(1000000);
     }
